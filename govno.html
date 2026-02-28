@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Тест на знання риби</title>
+    <style>
+        /* Подключаем жирный шрифт, похожий на тот, что в видео */
+        @import url('https://fonts.googleapis.com/css2?family=Oswald:wght@500;700&display=swap');
+
+        * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; -webkit-tap-highlight-color: transparent; }
+        
+        body { 
+            background-color: #000; 
+            display: flex; justify-content: center; align-items: center; 
+            height: 100vh; font-family: 'Oswald', sans-serif; overflow: hidden; 
+        }
+
+        /* Контейнер в формате вертикального видео 9:16 с фоном реальной реки */
+        #game-container { 
+            position: relative; width: 100%; max-width: 450px; height: 100%; 
+            background-image: url('https://upload.wikimedia.org/wikipedia/commons/thumb/7/7b/Desna_River.jpg/800px-Desna_River.jpg');
+            background-size: cover; background-position: center;
+            overflow: hidden; display: flex; flex-direction: column; 
+            box-shadow: 0 0 20px rgba(0,0,0,1);
+        }
+
+        /* Стиль текста как в TikTok (белый с толстой черной обводкой) */
+        .tiktok-text { 
+            color: white; text-align: center; font-weight: 700;
+            text-shadow: 
+                -2px -2px 0 #000,  
+                 2px -2px 0 #000,
+                -2px  2px 0 #000,
+                 2px  2px 0 #000,
+                 0px  4px 10px rgba(0,0,0,0.8);
+            letter-spacing: 1px; 
+        }
+
+        .screen { 
+            display: none; flex-direction: column; width: 100%; height: 100%; 
+            padding: 20px; align-items: center; position: absolute; top: 0; left: 0; 
+            background: rgba(0,0,0,0.2); /* Легкое затемнение фона реки */
+        }
+        .active { display: flex; animation: fadeIn 0.3s; }
+
+        /* Верхние надписи */
+        #top-title { font-size: 32px; color: #ffcccc; margin-top: 20px; text-transform: uppercase;}
+        #level-name { font-size: 28px; color: #aaffaa; margin-top: -5px;}
+
+        /* Блок с картинкой рыбы */
+        #fish-display { 
+            width: 100%; height: 30%; margin-top: 15px; 
+            display: flex; justify-content: center; align-items: center; 
+            box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+            background: #fff; border: 2px solid #000;
+        }
+        #fish-img { width: 100%; height: 100%; object-fit: cover; }
+        
+        /* Картинка на экране ответа */
+        #fish-img-feedback { width: 100%; height: 25%; object-fit: cover; margin-bottom: 20px; border: 2px solid #000;}
+
+        #question { font-size: 38px; margin: 20px 0; }
+
+        /* Кнопки ответов (стиль прозрачный, просто текст с цифрами) */
+        .options-grid { 
+            display: flex; flex-direction: column; width: 100%; gap: 15px; 
+            margin-top: auto; padding-bottom: 40px; align-items: flex-start; padding-left: 20%;
+        }
+        .opt-btn { 
+            background: transparent; border: none; font-size: 36px; text-align: left; 
+            cursor: pointer; color: white; font-family: inherit; font-weight: 700;
+            text-shadow: -2px -2px 0 #000, 2px -2px 0 #000, -2px 2px 0 #000, 2px 2px 0 #000;
+            transition: transform 0.1s; text-transform: uppercase;
+        }
+        .opt-btn:active { transform: scale(0.95); color: #fce803; }
+
+        /* Экран ответа */
+        #feedback-screen { background: rgba(0,0,0,0.6); z-index: 100; justify-content: center;}
+        .fb-title { font-size: 55px; color: #ff3333; margin-bottom: 20px; text-transform: uppercase;}
+        .fb-ans { font-size: 55px; color: #fce803; margin-top: 10px; text-transform: uppercase;}
+        .praise-text { font-size: 28px; color: #00ffcc; margin-top: 20px; line-height: 1.2;}
+
+        /* Меню и результаты */
+        .menu-btn { 
+            background: rgba(0, 0, 0, 0.7); border: 3px solid #fff; color: white; 
+            font-size: 26px; padding: 15px; margin: 10px; border-radius: 10px; 
+            width: 80%; cursor: pointer; font-family: inherit; font-weight: bold;
+        }
+
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        .shake { animation: shake 0.4s; }
+        @keyframes shake { 0%, 100% {transform: translateX(0);} 25% {transform: translateX(-10px);} 75% {transform: translateX(10px);} }
+    </style>
+</head>
+<body>
+
+<div id="game-container">
+    <div id="menu" class="screen active" style="background: rgba(0,0,0,0.5);">
+        <h1 class="tiktok-text" style="font-size: 50px; margin-bottom: 40px;">ТЕСТ НА<br>ЗНАННЯ РИБИ</h1>
+        <button class="menu-btn" onclick="start()">ПОЧАТИ ГРУ</button>
+    </div>
+
+    <div id="game" class="screen">
+        <div id="top-title" class="tiktok-text">Тест на знання риби</div>
+        <div id="level-name" class="tiktok-text">Рівень: легко</div>
+        
+        <div id="fish-display"><img id="fish-img" src=""></div>
+        
+        <div id="question" class="tiktok-text">Що це за риба?</div>
+        
+        <div class="options-grid" id="opts">
+            </div>
+    </div>
+
+    <div id="feedback" class="screen">
+        <div class="tiktok-text fb-title">ВІДПОВІДЬ</div>
+        <img id="fish-img-feedback" src="">
+        <div id="correct-name" class="tiktok-text fb-ans">КОРОП</div>
+        <div id="praise-message" class="tiktok-text praise-text"></div>
+    </div>
+
+    <div id="result" class="screen" style="background:rgba(0,0,0,0.85)">
+        <h1 class="tiktok-text" style="font-size:50px; margin-bottom: 20px;">ГРУ ЗАВЕРШЕНО!</h1>
+        <h2 id="final-score" class="tiktok-text" style="font-size:40px; color:#fff;">Правильно: 0</h2>
+        <h3 id="rank" class="tiktok-text" style="margin-top:20px; font-size:45px; color:#fce803;">РИБАЛКА</h3>
+        <button class="menu-btn" style="margin-top:50px;" onclick="location.reload()">ЗІГРАТИ ЩЕ</button>
+    </div>
+</div>
+
+<script>
+    // База реалистичных рыб с фотографиями из открытых источников
+    const fishData = [
+        { n: "Короп", img: "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e6/Cyprinus_carpio.jpeg/800px-Cyprinus_carpio.jpeg" },
+        { n: "Щука", img: "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d3/Esox_lucius1.jpg/800px-Esox_lucius1.jpg" },
+        { n: "Карась", img: "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b2/Carassius_carassius_1.jpg/800px-Carassius_carassius_1.jpg" },
+        { n: "Окунь", img: "https://upload.wikimedia.org/wikipedia/commons/thumb/b/bb/Perca_fluviatilis_1.jpg/800px-Perca_fluviatilis_1.jpg" },
+        { n: "Сом", img: "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6d/Silurus_glanis_02.jpg/800px-Silurus_glanis_02.jpg" },
+        { n: "Судак", img: "https://upload.wikimedia.org/wikipedia/commons/thumb/2/23/Sander_lucioperca_1.jpg/800px-Sander_lucioperca_1.jpg" },
+        { n: "Уклейка", img: "https://upload.wikimedia.org/wikipedia/commons/thumb/a/ab/Alburnus_alburnus_1.jpg/800px-Alburnus_alburnus_1.jpg" }
+    ];
+
+    // Фразы для похвалы на украинском
+    const praises = [
+        "Так, ти справжній рибалка! 🎣",
+        "Оце око! Точно! 👁️",
+        "Блискуче! 🌟",
+        "Рибальська інтуїція не підводить! 🧠",
+        "Ідеально! 🔥",
+        "Майстерний вибір! 🏆",
+        "Досвід не сховаєш! 😎"
+    ];
+
+    let state = { score: 0, idx: 0, q: [] };
+
+    function start() {
+        // Перемешиваем вопросы
+        state = { score: 0, idx: 0, q: [...fishData].sort(() => Math.random() - 0.5) };
+        showScreen('game');
+        renderQ();
+    }
+
+    function renderQ() {
+        const fish = state.q[state.idx];
+        document.getElementById('fish-img').src = fish.img;
+        
+        const optsContainer = document.getElementById('opts');
+        optsContainer.innerHTML = '';
+        
+        // Выбираем 2 неправильных ответа и добавляем 1 правильный
+        let wrongOptions = fishData.filter(f => f.n !== fish.n).sort(() => 0.5 - Math.random()).slice(0, 2);
+        let choices = [fish, ...wrongOptions].sort(() => 0.5 - Math.random());
+        
+        // Создаем кнопки в стиле видео: "1 КОРОП", "2 СОМ"
+        choices.forEach((c, index) => {
+            const b = document.createElement('button');
+            b.className = 'opt-btn';
+            b.innerText = `${index + 1} ${c.n.toUpperCase()}`;
+            b.onclick = () => check(c.n === fish.n, fish);
+            optsContainer.appendChild(b);
+        });
+    }
+
+    function check(isCorrect, fishObj) {
+        const container = document.getElementById('game-container');
+        const praiseEl = document.getElementById('praise-message');
+
+        if(isCorrect) { 
+            state.score++; 
+            // Случайная похвала
+            praiseEl.innerText = praises[Math.floor(Math.random() * praises.length)];
+            praiseEl.style.color = "#00ffcc";
+        } else { 
+            // Тряска экрана при ошибке
+            container.classList.remove('shake');
+            void container.offsetWidth; 
+            container.classList.add('shake');
+            praiseEl.innerText = "На жаль, це помилка 😢";
+            praiseEl.style.color = "#ffcccc";
+        }
+        
+        // Экран ответа (как в видео)
+        document.getElementById('correct-name').innerText = fishObj.n.toUpperCase();
+        document.getElementById('fish-img-feedback').src = fishObj.img;
+        showScreen('feedback');
+        
+        // Пауза 2 секунды перед следующим вопросом
+        setTimeout(() => {
+            state.idx++;
+            if(state.idx >= state.q.length) {
+                end();
+            } else {
+                showScreen('game');
+                renderQ();
+            }
+        }, 2000);
+    }
+
+    function end() {
+        document.getElementById('final-score').innerText = `Правильно: ${state.score} з ${state.q.length}`;
+        let r = "НОВАЧОК 🐟";
+        if(state.score >= 3) r = "ЛЮБИТЕЛЬ 🚤";
+        if(state.score >= 5) r = "ДОСВІДЧЕНИЙ 🎣";
+        if(state.score === state.q.length) r = "ЛЕГЕНДА ВОДОЙМ 👑";
+        document.getElementById('rank').innerText = r;
+        showScreen('result');
+    }
+
+    function showScreen(id) {
+        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+        document.getElementById(id).classList.add('active');
+    }
+</script>
+</body>
+</html>
